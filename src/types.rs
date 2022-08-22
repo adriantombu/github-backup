@@ -25,6 +25,10 @@ pub struct AppConfig {
     #[clap(arg_enum, long, value_parser, default_value_t = BackupType::Git)]
     pub backup_type: BackupType,
 
+    /// Exclude specific repositories
+    #[clap(long, value_parser)]
+    pub exclude: Vec<String>,
+
     /// Exclude private repositories
     #[clap(long, value_parser, default_value_t = false)]
     pub exclude_private: bool,

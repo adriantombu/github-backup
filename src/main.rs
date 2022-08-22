@@ -46,6 +46,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     return false;
                 }
 
+                if app_config.exclude.contains(&r.full_name) {
+                    return false;
+                }
+
                 true
             })
             .collect::<Vec<Repository>>();

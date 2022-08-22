@@ -34,6 +34,9 @@ OPTIONS:
             Choose between a full clone (git) or a simple archive without history (archive)
             [default: git] [possible values: archive, git]
 
+        --exclude <EXCLUDE>
+            Exclude specific repositories
+
         --exclude-archived
             Exclude archived repositories
 
