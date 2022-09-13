@@ -1,5 +1,5 @@
 use clap::{ArgEnum, Parser};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Parser, Deserialize, Debug)]
 #[clap(
@@ -13,10 +13,6 @@ pub struct AppConfig {
     #[clap(arg_enum, long, value_parser, default_value_t = ArchiveFormat::Zip)]
     pub archive_format: ArchiveFormat,
 
-    /// HEAD | main | ...
-    #[clap(long, value_parser, default_value_t = String::from("HEAD"))]
-    pub archive_ref: String,
-
     /// Path to save the files
     #[clap(long, value_parser, default_value_t = String::from("github-export"))]
     pub backup_path: String,
@@ -29,14 +25,6 @@ pub struct AppConfig {
     #[clap(long, value_parser)]
     pub exclude: Vec<String>,
 
-    /// Exclude private repositories
-    #[clap(long, value_parser, default_value_t = false)]
-    pub exclude_private: bool,
-
-    /// Exclude archived repositories
-    #[clap(long, value_parser, default_value_t = false)]
-    pub exclude_archived: bool,
-
     /// The Github username you used to create your access token (e.g. adriantombu)
     #[clap(long, value_parser)]
     pub username: String,
@@ -46,16 +34,36 @@ pub struct AppConfig {
     pub token: String,
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum, Deserialize, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum, Serialize, Deserialize, Debug)]
 pub enum ArchiveFormat {
     Tar,
     Zip,
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum, Deserialize, Debug)]
+impl ArchiveFormat {
+    pub fn from_numeric(position: usize) -> ArchiveFormat {
+        if position == 0 {
+            ArchiveFormat::Tar
+        } else {
+            ArchiveFormat::Zip
+        }
+    }
+}
+
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum, Serialize, Deserialize, Debug)]
 pub enum BackupType {
     Archive,
     Git,
+}
+
+impl BackupType {
+    pub fn from_numeric(position: usize) -> BackupType {
+        if position == 0 {
+            BackupType::Archive
+        } else {
+            BackupType::Git
+        }
+    }
 }
 
 #[derive(Deserialize, Debug)]
@@ -75,4 +83,14 @@ pub struct Repository {
     pub created_at: String,
     pub updated_at: String,
     pub pushed_at: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct AppConfigFile {
+    pub archive_format: ArchiveFormat,
+    pub backup_path: String,
+    pub backup_type: BackupType,
+    pub exclude: Vec<String>,
+    pub username: String,
+    pub token: String,
 }
