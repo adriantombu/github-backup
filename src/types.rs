@@ -1,7 +1,7 @@
-use clap::{ArgEnum, Parser};
+use clap::Parser;
 use serde::{Deserialize, Serialize};
 
-#[derive(Parser, Deserialize, Debug)]
+#[derive(Parser, Debug)]
 #[clap(
     name = "GitHub Backup",
     author = "Adrian Tombu <adrian@otso.fr>",
@@ -9,32 +9,28 @@ use serde::{Deserialize, Serialize};
     about = "Backup all your GitHub repositories with a single command",
     long_about = None
 )]
+pub enum Commands {
+    /// Initialize the config file
+    Init {},
+
+    /// Display the config file contents
+    Config {},
+
+    /// Run the GitHub backup
+    Run {},
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct AppConfig {
-    #[clap(arg_enum, long, value_parser, default_value_t = ArchiveFormat::Zip)]
     pub archive_format: ArchiveFormat,
-
-    /// Path to save the files
-    #[clap(long, value_parser, default_value_t = String::from("github-export"))]
     pub backup_path: String,
-
-    /// Choose between a full clone (git) or a simple archive without history (archive)
-    #[clap(arg_enum, long, value_parser, default_value_t = BackupType::Git)]
     pub backup_type: BackupType,
-
-    /// Exclude specific repositories
-    #[clap(long, value_parser)]
     pub exclude: Vec<String>,
-
-    /// The Github username you used to create your access token (e.g. adriantombu)
-    #[clap(long, value_parser)]
     pub username: String,
-
-    /// Your Github personal access token
-    #[clap(long, value_parser)]
     pub token: String,
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum, Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum ArchiveFormat {
     Tar,
     Zip,
@@ -50,7 +46,7 @@ impl ArchiveFormat {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum, Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum BackupType {
     Archive,
     Git,
@@ -83,14 +79,4 @@ pub struct Repository {
     pub created_at: String,
     pub updated_at: String,
     pub pushed_at: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct AppConfigFile {
-    pub archive_format: ArchiveFormat,
-    pub backup_path: String,
-    pub backup_type: BackupType,
-    pub exclude: Vec<String>,
-    pub username: String,
-    pub token: String,
 }

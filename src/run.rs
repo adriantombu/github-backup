@@ -1,4 +1,6 @@
+use crate::helpers::get_config;
 use crate::types::{AppConfig, BackupType, Repository};
+use anyhow::{Context, Result};
 use clap::Parser;
 use reqwest::Client;
 use std::fs;
@@ -8,8 +10,11 @@ use std::path::Path;
 use std::process::Command;
 use which::which;
 
-pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
-    let app_config: AppConfig = AppConfig::parse();
+pub async fn run() -> Result<()> {
+    let config = get_config().context("Unable to retrieve config")?;
+
+    /*
+
     if app_config.backup_type == BackupType::Git {
         which("git")?;
     }
@@ -58,11 +63,12 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
             download(&client, &app_config, &r).await?;
         };
     }
+    */
 
     Ok(())
 }
 
-fn clone(app_config: &AppConfig, r: &Repository) -> Result<(), Box<dyn std::error::Error>> {
+fn clone(app_config: &AppConfig, r: &Repository) -> Result<()> {
     let path = format!(
         "{}/{}",
         app_config.backup_path,
@@ -86,11 +92,7 @@ fn clone(app_config: &AppConfig, r: &Repository) -> Result<(), Box<dyn std::erro
     Ok(())
 }
 
-async fn download(
-    client: &Client,
-    app_config: &AppConfig,
-    r: &Repository,
-) -> Result<(), Box<dyn std::error::Error>> {
+async fn download(client: &Client, app_config: &AppConfig, r: &Repository) -> Result<()> {
     let file_name = format!(
         "{}/{}.{:?}",
         app_config.backup_path,
