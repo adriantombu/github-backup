@@ -13,45 +13,21 @@ Backup all your GitHub repositories with a single command
 ## How to use
 
 ```
-GitHub Backup 0.1.0
+~ github-backup help
+GitHub Backup 0.2.0
 Adrian Tombu <adrian@otso.fr>
 Backup all your GitHub repositories with a single command
 
 USAGE:
-    github-backup [OPTIONS] --username <USERNAME> --token <TOKEN>
+    github-backup <SUBCOMMAND>
 
 OPTIONS:
-        --archive-format <ARCHIVE_FORMAT>
-            [default: zip] [possible values: tar, zip]
+    -h, --help       Print help information
+    -V, --version    Print version information
 
-        --archive-ref <ARCHIVE_REF>
-            HEAD | main | ... [default: HEAD]
-
-        --backup-path <BACKUP_PATH>
-            Path to save the files [default: github-export]
-
-        --backup-type <BACKUP_TYPE>
-            Choose between a full clone (git) or a simple archive without history (archive)
-            [default: git] [possible values: archive, git]
-
-        --exclude <EXCLUDE>
-            Exclude specific repositories
-
-        --exclude-archived
-            Exclude archived repositories
-
-        --exclude-private
-            Exclude private repositories
-
-    -h, --help
-            Print help information
-
-        --token <TOKEN>
-            Your Github personal access token
-
-        --username <USERNAME>
-            The Github username you used to create your access token (e.g. adriantombu)
-
-    -V, --version
-            Print version information
+SUBCOMMANDS:
+    config    Display the config file contents
+    help      Print this message or the help of the given subcommand(s)
+    init      Initialize the config file
+    run       Run the GitHub backup
 ```

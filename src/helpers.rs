@@ -8,8 +8,12 @@ pub fn get_config_file() -> Result<String> {
     let home_dir = dir.home_dir();
     let path = home_dir.join(".github-backup");
 
-    fs::read_to_string(&path)
-        .with_context(|| format!("Unable to read config file from {}", path.display()))
+    fs::read_to_string(&path).with_context(|| {
+        format!(
+            "Unable to find config file at {}, please run the init command to create it",
+            path.display()
+        )
+    })
 }
 
 pub fn get_config() -> Result<AppConfig> {
