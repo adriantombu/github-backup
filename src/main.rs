@@ -3,15 +3,13 @@ use crate::init::init;
 use crate::run::run;
 use crate::types::Commands;
 use clap::Parser;
+use console::style;
 
 mod config;
 mod helpers;
 mod init;
 mod run;
 mod types;
-
-// TODO: use https://crates.io/crates/console, https://crates.io/crates/dialoguer & https://crates.io/crates/indicatif to improve user experience
-// TODO: code coverage
 
 #[tokio::main]
 async fn main() {
@@ -22,7 +20,7 @@ async fn main() {
     };
 
     if let Err(err) = res {
-        eprintln!("Error: {:?}", err);
+        eprintln!("{:?}", style(err).red());
         std::process::exit(1);
     }
 }

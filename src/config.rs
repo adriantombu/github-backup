@@ -1,10 +1,11 @@
 use crate::helpers::get_config_file;
 use anyhow::{Context, Result};
+use console::style;
 
 pub fn config() -> Result<()> {
     println!(
         "{}",
-        get_config_file().context("Unable to retrieve config file")?
+        style(get_config_file().context("Unable to retrieve config file")?).cyan()
     );
 
     Ok(())

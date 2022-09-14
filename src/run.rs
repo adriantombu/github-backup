@@ -1,6 +1,7 @@
 use crate::helpers::get_config;
 use crate::types::{AppConfig, BackupType, Repository};
 use anyhow::{Context, Result};
+use indicatif::ProgressBar;
 use reqwest::Client;
 use std::fs;
 use std::fs::File;
@@ -56,7 +57,11 @@ pub async fn run() -> Result<()> {
         fs::create_dir_all(&config.backup_path).context("Unable to create backup directory")?;
     }
 
+    // TODO: improve design of progress bar
+    let pb = ProgressBar::new(repositories.len() as u64);
     for r in repositories.iter() {
+        pb.inc(1);
+
         if config.backup_type == BackupType::Git {
             clone(&config, r)
                 .with_context(|| format!("Unable to clone repository {}", &r.full_name))?;
@@ -78,8 +83,6 @@ fn clone(config: &AppConfig, r: &Repository) -> Result<()> {
         &config.token,
         &r.clone_url[8..]
     );
-
-    println!("Cloning {}...", &r.full_name);
 
     Command::new("git")
         .arg("clone")
@@ -104,8 +107,6 @@ async fn download(client: &Client, config: &AppConfig, r: &Repository) -> Result
         &r.full_name, &config.archive_format
     )
     .to_lowercase();
-
-    println!("Saving {} to {}...", &url, &file_name);
 
     let content = client
         .get(url)

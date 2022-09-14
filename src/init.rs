@@ -1,6 +1,7 @@
 use crate::helpers::get_config_file;
 use crate::types::{AppConfig, ArchiveFormat, BackupType};
 use anyhow::{Context, Result};
+use console::style;
 use dialoguer::{theme::ColorfulTheme, Confirm, Input, Select};
 use directories::UserDirs;
 use std::fs;
@@ -9,6 +10,7 @@ pub fn init() -> Result<()> {
     if get_config_file().is_ok()
         && !Confirm::with_theme(&ColorfulTheme::default())
             .with_prompt("There is an existing config file, do you want to overwrite it?")
+            .default(true)
             .interact()
             .unwrap()
     {
@@ -24,7 +26,7 @@ pub fn init() -> Result<()> {
 
     let backup_path: String = Input::with_theme(&ColorfulTheme::default())
         .with_prompt("Path to save the files")
-        .default("./github-export".parse().unwrap())
+        .default("./github-backup".parse().unwrap())
         .interact_text()
         .context("Unable to retrieve backup path")?;
 
@@ -77,7 +79,14 @@ pub fn init() -> Result<()> {
     )
     .with_context(|| format!("Unable to write config to {}", &path.display()))?;
 
-    println!("Config was saved to {}", path.display());
+    println!(
+        "{}",
+        style(format!(
+            "The configuration file was saved to {}",
+            path.display()
+        ))
+        .cyan()
+    );
 
     Ok(())
 }
