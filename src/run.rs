@@ -1,7 +1,6 @@
 use crate::helpers::get_config;
 use crate::types::{AppConfig, BackupType, Repository};
 use anyhow::{Context, Result};
-use clap::Parser;
 use reqwest::Client;
 use std::fs;
 use std::fs::File;
@@ -13,10 +12,9 @@ use which::which;
 pub async fn run() -> Result<()> {
     let config = get_config().context("Unable to retrieve config")?;
 
-    /*
-
-    if app_config.backup_type == BackupType::Git {
-        which("git")?;
+    if config.backup_type == BackupType::Git {
+        which("git")
+            .context("Unable to locate Git binary, please install a working version of Git")?;
     }
 
     let client = Client::new();
@@ -32,14 +30,16 @@ pub async fn run() -> Result<()> {
                 page
             ))
             .header("Accept", "application/vnd.github+json")
-            .header("User-Agent", app_config.username.to_string())
-            .header("Authorization", format!("token {}", app_config.token))
+            .header("User-Agent", &config.username)
+            .header("Authorization", format!("token {}", &config.token))
             .send()
-            .await?
+            .await
+            .context("Unable to fetch Github API, please check your credentials")?
             .json::<Vec<Repository>>()
-            .await?
+            .await
+            .context("Unable to deserialize repositories")?
             .into_iter()
-            .filter(|r| !app_config.exclude.contains(&r.full_name))
+            .filter(|r| !config.exclude.contains(&r.full_name))
             .collect::<Vec<Repository>>();
 
         if !values.is_empty() {
@@ -50,73 +50,77 @@ pub async fn run() -> Result<()> {
         }
     }
 
-    println!("Found {:#?} repositories", repositories.len());
+    println!("Found {:#?} repositories", &repositories.len());
 
-    if !Path::new(&app_config.backup_path).exists() {
-        fs::create_dir_all(&app_config.backup_path)?;
+    if !Path::new(&config.backup_path).exists() {
+        fs::create_dir_all(&config.backup_path).context("Unable to create backup directory")?;
     }
 
-    for r in repositories.into_iter() {
-        if app_config.backup_type == BackupType::Git {
-            clone(&app_config, &r)?;
+    for r in repositories.iter() {
+        if config.backup_type == BackupType::Git {
+            clone(&config, r)
+                .with_context(|| format!("Unable to clone repository {}", &r.full_name))?;
         } else {
-            download(&client, &app_config, &r).await?;
+            download(&client, &config, r)
+                .await
+                .with_context(|| format!("Unable to download repository {}", &r.full_name))?;
         };
     }
-    */
 
     Ok(())
 }
 
-fn clone(app_config: &AppConfig, r: &Repository) -> Result<()> {
-    let path = format!(
-        "{}/{}",
-        app_config.backup_path,
-        r.full_name.replace('/', "-")
-    );
+fn clone(config: &AppConfig, r: &Repository) -> Result<()> {
+    let path = format!("{}/{}", &config.backup_path, &r.full_name.replace('/', "-"));
     let url = format!(
         "{}{}@{}",
         &r.clone_url[0..8],
-        app_config.token,
+        &config.token,
         &r.clone_url[8..]
     );
 
-    println!("Cloning {}...", r.full_name);
+    println!("Cloning {}...", &r.full_name);
 
     Command::new("git")
         .arg("clone")
         .arg(url)
         .arg(path)
-        .output()?;
+        .output()
+        .with_context(|| format!("Unable to run git clone for repository {}", &r.full_name))?;
 
     Ok(())
 }
 
-async fn download(client: &Client, app_config: &AppConfig, r: &Repository) -> Result<()> {
+async fn download(client: &Client, config: &AppConfig, r: &Repository) -> Result<()> {
     let file_name = format!(
         "{}/{}.{:?}",
-        app_config.backup_path,
-        r.full_name.replace('/', "-"),
-        app_config.archive_format
-    );
+        &config.backup_path,
+        &r.full_name.replace('/', "-"),
+        &config.archive_format
+    )
+    .to_lowercase();
     let url = format!(
-        "https://api.github.com/repos/{}/{:?}ball/{}",
-        r.full_name, app_config.archive_format, "HEAD"
-    );
+        "https://api.github.com/repos/{}/{:?}ball",
+        &r.full_name, &config.archive_format
+    )
+    .to_lowercase();
 
-    println!("Saving {} to {}...", url, file_name);
+    println!("Saving {} to {}...", &url, &file_name);
 
     let content = client
         .get(url)
         .header("Accept", "application/vnd.github+json")
-        .header("User-Agent", app_config.username.to_string())
-        .header("Authorization", format!("token {}", app_config.token))
+        .header("User-Agent", &config.username)
+        .header("Authorization", format!("token {}", &config.token))
         .send()
-        .await?
+        .await
+        .context("Unable to fetch Github API, please check your credentials")?
         .bytes()
-        .await?;
+        .await
+        .context("Unable to retrieve content as bytes")?;
 
-    File::create(file_name)?.write_all(&content)?;
-
-    Ok(())
+    File::create(&file_name)
+        .with_context(|| format!("Unable to create file {}", &file_name))?
+        .write_all(&content)
+        .with_context(|| format!("Unable to write to file {}", &file_name))
 }

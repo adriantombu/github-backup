@@ -30,7 +30,7 @@ pub struct AppConfig {
     pub token: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(PartialEq, Eq, Serialize, Deserialize, Debug)]
 pub enum ArchiveFormat {
     Tar,
     Zip,
@@ -46,7 +46,7 @@ impl ArchiveFormat {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(PartialEq, Eq, Serialize, Deserialize, Debug)]
 pub enum BackupType {
     Archive,
     Git,
