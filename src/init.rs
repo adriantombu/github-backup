@@ -1,10 +1,20 @@
+use crate::helpers::get_config_file;
 use crate::types::{AppConfig, ArchiveFormat, BackupType};
 use anyhow::{Context, Result};
-use dialoguer::{theme::ColorfulTheme, Input, Select};
+use dialoguer::{theme::ColorfulTheme, Confirm, Input, Select};
 use directories::UserDirs;
 use std::fs;
 
 pub fn init() -> Result<()> {
+    if get_config_file().is_ok()
+        && !Confirm::with_theme(&ColorfulTheme::default())
+            .with_prompt("There is an existing config file, do you want to overwrite it?")
+            .interact()
+            .unwrap()
+    {
+        std::process::exit(0);
+    }
+
     let archive_format = Select::with_theme(&ColorfulTheme::default())
         .with_prompt("Archive format")
         .default(0)
