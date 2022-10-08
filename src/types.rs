@@ -1,7 +1,7 @@
-use clap::{ArgEnum, Parser};
-use serde::Deserialize;
+use clap::Parser;
+use serde::{Deserialize, Serialize};
 
-#[derive(Parser, Deserialize, Debug)]
+#[derive(Parser, Debug)]
 #[clap(
     name = "GitHub Backup",
     author = "Adrian Tombu <adrian@otso.fr>",
@@ -9,53 +9,57 @@ use serde::Deserialize;
     about = "Backup all your GitHub repositories with a single command",
     long_about = None
 )]
+pub enum Commands {
+    /// Initialize the config file
+    Init {},
+
+    /// Display the config file contents
+    Config {},
+
+    /// Run the GitHub backup
+    Run {},
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct AppConfig {
-    #[clap(arg_enum, long, value_parser, default_value_t = ArchiveFormat::Zip)]
     pub archive_format: ArchiveFormat,
-
-    /// HEAD | main | ...
-    #[clap(long, value_parser, default_value_t = String::from("HEAD"))]
-    pub archive_ref: String,
-
-    /// Path to save the files
-    #[clap(long, value_parser, default_value_t = String::from("github-export"))]
     pub backup_path: String,
-
-    /// Choose between a full clone (git) or a simple archive without history (archive)
-    #[clap(arg_enum, long, value_parser, default_value_t = BackupType::Git)]
     pub backup_type: BackupType,
-
-    /// Exclude specific repositories
-    #[clap(long, value_parser)]
     pub exclude: Vec<String>,
-
-    /// Exclude private repositories
-    #[clap(long, value_parser, default_value_t = false)]
-    pub exclude_private: bool,
-
-    /// Exclude archived repositories
-    #[clap(long, value_parser, default_value_t = false)]
-    pub exclude_archived: bool,
-
-    /// The Github username you used to create your access token (e.g. adriantombu)
-    #[clap(long, value_parser)]
     pub username: String,
-
-    /// Your Github personal access token
-    #[clap(long, value_parser)]
     pub token: String,
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum, Deserialize, Debug)]
+#[derive(PartialEq, Eq, Serialize, Deserialize, Debug)]
 pub enum ArchiveFormat {
     Tar,
     Zip,
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum, Deserialize, Debug)]
+impl ArchiveFormat {
+    pub fn from_numeric(position: usize) -> ArchiveFormat {
+        if position == 0 {
+            ArchiveFormat::Tar
+        } else {
+            ArchiveFormat::Zip
+        }
+    }
+}
+
+#[derive(PartialEq, Eq, Serialize, Deserialize, Debug)]
 pub enum BackupType {
     Archive,
     Git,
+}
+
+impl BackupType {
+    pub fn from_numeric(position: usize) -> BackupType {
+        if position == 0 {
+            BackupType::Archive
+        } else {
+            BackupType::Git
+        }
+    }
 }
 
 #[derive(Deserialize, Debug)]
