@@ -1,7 +1,14 @@
 [package]
 name = "github-backup"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
+authors = ["Adrian Tombu <adrian@otso.fr>"]
+keywords = ["cli", "backup", "git", "github"]
+categories = ["command-line-utilities", "web-programming"]
+description = "Backup all your GitHub repositories with a single command"
+license = "MIT"
+repository = "https://github.com/adriantombu/github-backup"
+include = ["/src", "LICENSE.md", "README.md"]
 
 [dependencies]
 reqwest = { version = "0.11", features = ["json"] }
