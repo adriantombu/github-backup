@@ -45,7 +45,7 @@ pub fn init() -> Result<()> {
         .interact_text()
         .context("Unable to retrieve excluded repositories")?
         .split(',')
-        .map(|r| r.trim().to_string())
+        .map(|r| r.trim().to_string().to_lowercase())
         .filter(|r| !r.is_empty())
         .collect::<Vec<String>>();
 

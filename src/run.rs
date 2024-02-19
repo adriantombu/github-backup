@@ -27,8 +27,7 @@ pub async fn run() -> Result<()> {
     loop {
         let mut values = client
             .get(format!(
-                "https://api.github.com/user/repos?per_page=100&page={}",
-                page
+                "https://api.github.com/user/repos?per_page=100&page={page}"
             ))
             .header("Accept", "application/vnd.github+json")
             .header("User-Agent", &config.username)
@@ -40,15 +39,15 @@ pub async fn run() -> Result<()> {
             .await
             .context("Unable to deserialize repositories")?
             .into_iter()
-            .filter(|r| !config.exclude.contains(&r.full_name))
+            .filter(|r| !config.exclude.contains(&r.full_name.to_lowercase()))
             .collect::<Vec<Repository>>();
 
-        if !values.is_empty() {
-            repositories.append(&mut values);
-            page += 1;
-        } else {
+        if values.is_empty() {
             break;
         }
+
+        repositories.append(&mut values);
+        page += 1;
     }
 
     println!("Found {:#?} repositories", &repositories.len());
@@ -59,7 +58,7 @@ pub async fn run() -> Result<()> {
 
     // TODO: improve design of progress bar
     let pb = ProgressBar::new(repositories.len() as u64);
-    for r in repositories.iter() {
+    for r in &repositories {
         pb.inc(1);
 
         if config.backup_type == BackupType::Git {
